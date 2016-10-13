@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>移动端-图片横向滑动</title>
+	<style>
+		html,body {
+			overflow-x: hidden;
+		}
+		.bg{
+			width: 100%;
+		}
+		#canvas {
+			width: 100%;
+			position: relative;
+		}
+		#canvas ul {
+			width: 100rem;
+			/*高度暂且写死，有待优化*/
+			height: 12.3rem;
+			position: absolute;
+			top: 20rem;
+			left: 0;
+			transform: translate(0, 0);
+			transition: transform 0.1s linear;
+		}
+		#canvas .list{
+			width: 10rem;
+			margin-left: 2rem;
+			float: left;
+		}
+		#canvas .list:last-child{
+			margin-right: 2rem;
+		}
+		.list img{
+			width: 100%;
+		}
+	</style>
+</head>
+<body>
+	<div id="canvas">
+		<img src="http://img.bizhi.sogou.com/images/2012/03/14/140763.jpg" class="bg" />
+		<ul>
+			<li class="list"><img src="http://ec4.images-amazon.com/images/I/614fKb9ZgWL._AA278_PIkin4,BottomRight,-34,22_AA300_SH20_OU28_.jpg"></li>
+			<li class="list"><img src="http://ec4.images-amazon.com/images/I/614fKb9ZgWL._AA278_PIkin4,BottomRight,-34,22_AA300_SH20_OU28_.jpg"></li>
+			<li class="list"><img src="http://ec4.images-amazon.com/images/I/614fKb9ZgWL._AA278_PIkin4,BottomRight,-34,22_AA300_SH20_OU28_.jpg"></li>
+			<li class="list"><img src="http://ec4.images-amazon.com/images/I/614fKb9ZgWL._AA278_PIkin4,BottomRight,-34,22_AA300_SH20_OU28_.jpg"></li>
+			<li class="list"><img src="http://ec4.images-amazon.com/images/I/614fKb9ZgWL._AA278_PIkin4,BottomRight,-34,22_AA300_SH20_OU28_.jpg"></li>
+		</ul>
+	</div>
+
+	<script>
+		
+		function Slider(opts){
+			this.wrap = opts.ul;
+			this.list = opts.li;
+			this.ulWidth = opts.ulWidth;
+
+			// 初始化设置
+			this.init();
+			// 滑动
+			this.slide();
+		}
+
+		Slider.prototype.init = function() {
+			// 根据遍历li计算ul宽度
+			for(var i=0; i < this.list.length; i++) {
+				this.ulWidth += this.list.eq(i).outerWidth(true);
+			}
+			// 设置
+			this.wrap.width(this.ulWidth);
+			// translate中 x（绝对值）的最大值
+			this.maxX = this.ulWidth - $(window).width();
+		}
+
+		Slider.prototype.slide = function() {
+			var that = this;
+			// 开始滑动
+			var startSlide = function (e) {
+				// 开始触摸点坐标x
+				that.startX = e.originalEvent.targetTouches[0].pageX;
+				// 开始触摸时 translate值中x值，并转为数字类型
+				that.translateX = (that.wrap.css("transform").replace(/[^0-9\-,]/g,'').split(",")[4]) *1;
+			}
+
+			// 滑动过程
+			var moveSlide = function(e) {
+				e.preventDefault();
+				
+				// 平移距离
+				that.moveX = e.originalEvent.targetTouches[0].pageX - that.startX;
+				// 平移坐标x值
+				var _x = that.translateX + that.moveX;
+			
+				// 判断左右临界，并进行平移
+				if(! (_x < -(that.maxX) || _x > 0)) {
+					that.wrap.css({
+						transform: "translate("+ _x +"px, 0)"
+					});
+				}
+			}
+
+			// 滑动结束，清空move函数
+			var endSlide = function() {
+				moveSlide = null;
+			}
+
+			this.wrap.on("touchstart", startSlide)
+					.on("touchmove", moveSlide)
+					.on("touchend", endSlide);
+		};
+		new Slider({
+			ul : $("ul"),
+			li : $(".list"),
+			ulWidth : 0
+		});
+	</script>
+</body>
+</html>
